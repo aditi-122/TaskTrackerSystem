@@ -8,6 +8,7 @@ const session = require("express-session");
 const PORT = process.env.PORT || 8086;
 const UserRoute = require("./routes/user.route"); // Add this line to import UserRoute
 app.use(express.json());
+const TaskRoute = require("./routes/task.route")
 app.use(passport.initialize());
 app.use(session({
   secret: 'keyboard cat',
@@ -20,7 +21,7 @@ app.use("/users", UserRoute);
 app.get("/", (req, res) => {
   res.status(200).json({ msg: "This is text route" })
 })
-
+app.use("/tasks",TaskRoute)
 app.get("/signup", (req, res) => {
   res.send(`<a herf="/auth/google"> signup with google</a>`)
 })
