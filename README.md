@@ -1,2 +1,2 @@
 # TaskTrackerSystem
-### Third party integration is applied
+### Third party integration is applied using google OAuth2
