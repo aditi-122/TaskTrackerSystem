@@ -2,17 +2,10 @@ const express = require("express");
 const TaskRoute = express.Router();
 const authMw = require("../middleware/auth.middleware")
 const TaskModel = require("../models/task.model");
-TaskRoute.post("/login",(req,res)=>{
-    if(!req.isAuthenticated()){
-       res.status(401).json({msg:"User Not logged in"});
-    }
-    else{
 
-    }
-})
 TaskRoute.post("/add", authMw, async (req, res) => {
     try {
-        let task = { ...req.body, owner: req.body.userId };
+        let task = { ...req.body, owner: req.user.id };
         let task1 = await TaskModel.create(task);
         res.status(201).json({ msg: "task created", task1 });
     } catch (error) {
@@ -22,16 +15,15 @@ TaskRoute.post("/add", authMw, async (req, res) => {
 })
 TaskRoute.get("/get", authMw, async (req, res) => {
     try {
-        let tasks = await TaskModel.find({ owner: req.body.userId });
+        let tasks = await TaskModel.find({ owner: req.user.id });
         if (tasks.length == 0) {
             res.status(201).json({ msg: "No Task Found", tasks })
         }
         else {
             res.status(200).json({ msg: "Tasks found", tasks });
         }
-    } catch (error) {
+    } catch (err) {
         console.log(err);
-        console.log(error);
     }
 });
 TaskRoute.get("/public/get", async (req, res) => {
@@ -51,7 +43,7 @@ TaskRoute.get("/public/get", async (req, res) => {
 })
 TaskRoute.get("/collaborator/get", authMw, async (req, res) => {
     try {
-        let tasks = await TaskModel.find({ collaborator: req.body.userId });
+        let tasks = await TaskModel.find({ collaborator: req.user.id });
         if (tasks.length == 0) {
             res.status(200).json({ msg: "No CoLLaborator Tasks Found" });
         }
@@ -65,7 +57,7 @@ TaskRoute.get("/collaborator/get", authMw, async (req, res) => {
 })
 TaskRoute.get("/pending", authMw, async (req, res) => {
     try {
-        let tasks = await TaskModel.find({ owner: req.body.userId });
+        let tasks = await TaskModel.find({ owner: req.user.id });
         let pendingTasks = tasks.filter(el => el.deadline < Date.now());
         if (pendingTasks.length == 0) {
             res.status(200).json({ msg: "No collaborator pending tasks found" });
@@ -73,12 +65,11 @@ TaskRoute.get("/pending", authMw, async (req, res) => {
             res.status(200).json({ msg: "Collaborator Task List", pendingTasks });
         }
     } catch (err) {
-        console.log({ msg: "Error in getting pending tasks,(catch)" });
         console.log(err);
         res.status(500).json({ msg: "Error in getting pending tasks,(catch)" });
     }
 });
-TaskRoute.patch("/update/:id",async (req,res) => {
+TaskRoute.patch("/update/:id", authMw, async (req, res) => {
   try {
     let tasks = await TaskModel.findByIdAndUpdate(req.params.id,req.body,{new:true});
     res.status(200).json({msg:"Task Updated",tasks});
@@ -87,7 +78,7 @@ TaskRoute.patch("/update/:id",async (req,res) => {
     res.status(500).json({msg:"Error in updating task,(catch)"})
   }
 })
-TaskRoute.delete("/delete/:id",async(req,res)=>{
+TaskRoute.delete("/delete/:id", authMw, async (req, res) => {
    try {
     let tasks = await TaskModel.findByIdAndDelete(req.params.id)
     res.status(200).json({msg:"Task deleted", tasks});
